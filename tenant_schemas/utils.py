@@ -38,7 +38,8 @@ def get_db_string(schema_name):
     if schema_name == get_public_schema_name():
         db_string = 'default'
     else:
-        options = settings.DATABASES.keys().remove('default')
+        options = [*settings.DATABASES]
+        options.remove('default')
         connections['default'].set_schema_to_public()
         last = get_tenant_model().objects.exclude(schema_name=get_public_schema_name()).latest('id')
         if not last:
