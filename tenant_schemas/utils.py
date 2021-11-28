@@ -41,7 +41,10 @@ def get_db_string(schema_name):
         options = [*settings.DATABASES]
         options.remove('default')
         connections['default'].set_schema_to_public()
-        last = get_tenant_model().objects.exclude(schema_name=get_public_schema_name()).latest('id')
+        try:
+            last = get_tenant_model().objects.exclude(schema_name=get_public_schema_name()).latest('id')
+        except:
+            last = None
         if not last:
             db_string = options[0]
         else:
