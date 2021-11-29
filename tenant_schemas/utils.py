@@ -18,8 +18,11 @@ def schema_context(schema_name, db=None):
     from django.db import connection, connections
     if not db and schema_name == get_public_schema_name():
         db = 'default'
-    if has_multiple_db() and not db:
-        raise MultipleDBError("DB not specified")
+    tenant = get_tenant_model().objects.using('default').get(schema_name=schema_name)
+    if not db and tenant.schema_name == get_public_schema_name():
+        db = 'default'
+    else:
+        db = tenant.db_string
     if db:
         connection = connections[db]
 
@@ -58,8 +61,8 @@ def tenant_context(tenant, db=None):
     from django.db import connection, connections
     if not db and tenant.schema_name == get_public_schema_name():
         db = 'default'
-    if has_multiple_db() and not db:
-        raise MultipleDBError("DB not specified")
+    else:
+        db = tenant.db_string
     if db:
         connection = connections[db]
 
@@ -125,27 +128,7 @@ def django_is_in_test_mode():
 
 
 def schema_exists(schema_name, db=None):
-    from django.db import connection, connections
-    if has_multiple_db() and not db:
-        raise MultipleDBError("DB not specified")
-    if db:
-        connection = connections[db]
-    cursor = connection.cursor()
-
-    # check if this schema already exists in the db
-    sql = 'SELECT EXISTS(SELECT 1 FROM pg_catalog.pg_namespace WHERE LOWER(nspname) = LOWER(%s))'
-    cursor.execute(sql, (schema_name, ))
-
-    row = cursor.fetchone()
-    if row:
-        exists = row[0]
-    else:
-        exists = False
-
-    cursor.close()
-
-    return exists
-
+    return get_tenant_model().objects.using('default').get(schema_name=schema_name).exists()
 
 
 def app_labels(apps_list):
