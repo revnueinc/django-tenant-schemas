@@ -128,6 +128,8 @@ def django_is_in_test_mode():
 
 
 def schema_exists(schema_name, db=None):
+    connection = connections['default']
+    connection.set_schema_to_public()
     return get_tenant_model().objects.using('default').filter(schema_name=schema_name).exists()
 
 
