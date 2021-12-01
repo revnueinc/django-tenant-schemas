@@ -128,9 +128,26 @@ def django_is_in_test_mode():
 
 
 def schema_exists(schema_name, db=None):
-    connection = connections['default']
-    connection.set_schema_to_public()
-    return get_tenant_model().objects.using('default').filter(schema_name=schema_name).exists()
+    from django.db import connection, connections
+    if has_multiple_db() and not db:
+        return False
+    if db:
+        connection = connections[db]
+    cursor = connection.cursor()
+
+    # check if this schema already exists in the db
+    sql = 'SELECT EXISTS(SELECT 1 FROM pg_catalog.pg_namespace WHERE LOWER(nspname) = LOWER(%s))'
+    cursor.execute(sql, (schema_name,))
+
+    row = cursor.fetchone()
+    if row:
+        exists = row[0]
+    else:
+        exists = False
+
+    cursor.close()
+
+    return exists
 
 
 def app_labels(apps_list):
