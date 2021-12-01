@@ -45,14 +45,14 @@ def get_db_string(schema_name):
         options.remove('default')
         connections['default'].set_schema_to_public()
         try:
-            last = get_tenant_model().objects.exclude(schema_name=get_public_schema_name()).latest('id')
+            last = get_tenant_model().objects.using('default').exclude(schema_name=get_public_schema_name()).latest('id')
         except:
             last = None
         if not last:
             db_string = options[0]
         else:
             last_index = options.index(last.db_string)
-            starting_at_last_index = islice(cycle(options), last_index, None)
+            starting_at_last_index = islice(cycle(options), last_index + 1, None)
             db_string = next(starting_at_last_index)
     return db_string
 
