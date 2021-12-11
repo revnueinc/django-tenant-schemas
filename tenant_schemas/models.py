@@ -69,7 +69,8 @@ class TenantMixin(models.Model):
     def save(self, verbosity=1, *args, **kwargs):
 
         is_new = self.pk is None
-        self.db_string = get_db_string(self.schema_name)
+        if not self.db_string:
+            self.db_string = get_db_string(self.schema_name)
         db = self.db_string
 
         from django.db import connection
