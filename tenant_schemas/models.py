@@ -93,7 +93,7 @@ class TenantMixin(models.Model):
             except Exception as e:
                 # We failed creating the tenant, delete what we created and
                 # re-raise the exception
-                self.delete(force_drop=True, db=db)
+                self.delete(force_drop=True, using=db)
                 raise
             else:
                 post_schema_sync.send(sender=TenantMixin, tenant=self)
