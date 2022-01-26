@@ -48,7 +48,7 @@ def get_db_string(schema_name):
             last = get_tenant_model().objects.using('default').exclude(schema_name=get_public_schema_name()).latest('id')
         except:
             last = None
-        if not last:
+        if not last or last.db_string == 'default':
             db_string = options[0]
         else:
             last_index = options.index(last.db_string)
